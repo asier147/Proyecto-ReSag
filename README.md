@@ -1,13 +1,23 @@
-# Proyecto-ReSag-TFM
-Codigo del proyecto realizado para el TFM dentro del marco del proyecto "Desarrollo de nuevas metodologías de teledetección para una agricultura más sostenible (ReSAg), proyecto financiado por el Ministerio de Ciencia e Innovación a través del Plan Estatal de I+D+i (PID2019-107386RB-I00)
-El título del TFM es Desarrollo de metodologías de teledetección para la identificación de prácticas agrícolas sostenibles.
+# Project-ReSag-MasterThesis
 
-El código se estructura de la siguiente forma:
-1- Código de Google Earth Engine para el caclulo de las estadísticas por cada parcela para las bandas de Sentinel-2 y para los índices seleccionados con el uso del filtro de nubes basado en la banda SCL.
-2- Código python para la carga de los datos y representación de las series temporales previo a la eliminación de los outliers, interpolación y filtro de suavizado.
-3- Código python para la carga de datos y calculo de las estadísticas zonales para los datos de Sentinel-1. Representación de series temporales.
-3- Código python filtrado de outliers, interpolación y filtro de suavizado de las series temporales.
-4- Código python representación de las series temporales de Sentinel-2 de los índices y bandas tras la eliminación de los outliers, interpolación y filtro de suavizado.
-5- Código python de análisis estadísticos.
-6-Código python estimación de los hiperparámetros óptimos para el clasificador supervisado Random Forest
-7- Código python implementaciçpn clasificador supervisado Random Forest
+This project code was developed for the Master's Thesis within the framework of the project "Development of new remote sensing methodologies for more sustainable agriculture (ReSAg)," funded by the Ministry of Science and Innovation of Spain through the State Plan for R&D&I (PID2019-107386RB-I00).
+
+The title of the Master's Thesis is "Development of remote sensing methodologies for the identification of sustainable agricultural practices."
+
+The code is structured as follows:
+
+1- Google Earth Engine code for calculating statistics for each plot for Sentinel-2 bands and selected indices using the cloud filter based on the SCL band.
+
+2- Python code for loading data and visualizing time series prior to outlier removal, interpolation, and smoothing.
+
+3- Python code for loading data and calculating zonal statistics for Sentinel-1 data. Visualization of time series.
+
+4- Python code for outlier removal, interpolation, and smoothing of time series.
+
+5- Python code for visualizing time series of Sentinel-2 indices and bands after outlier removal, interpolation, and smoothing.
+
+6- Python code for statistical analysis.
+
+7- Python code for estimating optimal hyperparameters for the Random Forest supervised classifier.
+
+8- Python code for implementing the Random Forest supervised classifier.
