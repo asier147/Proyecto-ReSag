@@ -23,7 +23,10 @@ conservacion_indices = pd.read_csv(" ")
 convencional_bandas = pd.read_csv(" ")
 conservacion_bandas = pd.read_csv(" ")
 
-# Extract relevant data
+
+#######################################################################################################################################################################
+
+ Extract relevant data
 indices = sorted([x for x in convencional_indices.columns.values if 'mean' in x ])
 bandas = sorted([x for x in convencional_bandas.columns.values if 'mean' in x ])
 columnas_fijas=['date','Manejo']
@@ -40,6 +43,8 @@ convencional_indices['date'] = pd.to_datetime(convencional_indices['date']).dt.d
 
 conservacion_bandas['date'] = pd.to_datetime(conservacion_bandas['date']).dt.date
 convencional_bandas['date'] = pd.to_datetime(convencional_bandas['date']).dt.date
+
+#######################################################################################################################################################################
 
 # Function to create percentile charts for a single index
 def create_percentile_chart(index, df):
@@ -69,6 +74,8 @@ def create_percentile_chart(index, df):
     ax.legend()
     plt.show()
 
+#######################################################################################################################################################################
+
 # Concatenate dataframes
 fich_trabajo_indices = pd.concat([convencional_indices, conservacion_indices], ignore_index=True)
 fich_trabajo_bandas = pd.concat([convencional_bandas, conservacion_bandas], ignore_index=True)
@@ -80,6 +87,8 @@ bandas = [col.split("_")[0] for col in bandas if "mean" in col]
 # Create percentile charts for indices
 for index in indices:
     create_percentile_chart(index, fich_trabajo_indices)
+
+#######################################################################################################################################################################
 
 # Function to create percentile charts for multiple indices
 def create_percentile_mult_chart(indices, df):
@@ -129,3 +138,5 @@ def create_percentile_mult_chart(indices, df):
 # Create percentile charts for multiple indices
 create_percentile_mult_chart(indices, fich_trabajo_indices)
 create_percentile_mult_chart(bandas, fich_trabajo_bandas)
+
+#######################################################################################################################################################################
