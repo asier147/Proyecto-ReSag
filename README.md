@@ -18,6 +18,8 @@ The code is structured as follows:
 
 6- Python code for statistical analysis.
 
-7- Python code for estimating optimal hyperparameters for the Random Forest supervised classifier.
+7- Python code to calculate the correlation matrix between bands and indices from Sentinel-2.
 
-8- Python code for implementing the Random Forest supervised classifier.
+8- Python code for estimating optimal hyperparameters for the Random Forest supervised classifier.
+
+9- Python code for implementing the Random Forest supervised classifier.
