@@ -1,0 +1,225 @@
+var parcelas = ee.FeatureCollection('projects/resag-1/assets/Parcelas_23_combinado');
+
+
+var convencional = ee.FeatureCollection(parcelas)
+    .filter(ee.Filter.eq('Manejo','Convencional'));
+
+var conservacion = ee.FeatureCollection(parcelas)
+    .filter(ee.Filter.eq('Manejo','Conservacion'));
+ 
+var addindices = function(image) {
+  //var ndvi = image.normalizedDifference(['B8','B4']).rename('NDVI');
+  
+  //var CRC1 = image.normalizedDifference(['B11','B2']).rename('CRC1');
+  var NDSVI = image.normalizedDifference(['B11','B4']).rename('NDSVI');  /// normalized Diff Moisture Index
+  var NDI7 = image.normalizedDifference(['B8A','B12']).rename('NDI7'); 
+  var NDI5 = image.normalizedDifference(['B8A','B11']).rename('NDI5');
+  var NDRI = image.normalizedDifference(['B4','B12']).rename('NDRI'); 
+  var DFI = image.expression(                                               
+      '100*(1-B12/B11)*(B4/B8)', {         
+      'B11': image.select('B11'),
+      'B12': image.select('B12'),
+      'B4' : image.select('B4'),
+      'B8': image.select('B8')
+    }).rename('DFI'); 
+  var NDI3 = image.normalizedDifference(['B4','B12']).rename('NDI3'); 
+  //var NDI4 = image.normalizedDifference(['B8A','B12']).rename('NDI4'); 
+  var RATIO = image.expression(                                               /// Triangle vegetation index
+      'B12/B11'/*10000*/, {         
+      'B11': image.select('B11'),
+      'B12': image.select('B12')
+    }).rename('RATIO');
+  var MCRC = image.normalizedDifference(['B11','B3']).rename('MCRC'); 
+  var SRNDI = image.normalizedDifference(['B12','B4']).rename('SRNDI'); 
+  var NDTI = image.normalizedDifference(['B11','B12']).rename('NDTI'); /// normalized Diff Red Edge Index
+  var STI = image.expression(                                               /// Triangle vegetation index
+      'B11/B12',{         // DIVIDIDO PARA 10000 POR LA REFLECTANCIA ADICIONAL 10 PARA RANGO
+      'B11': image.select('B11'),
+      'B12': image.select('B12')
+    }).rename('STI');
+    var SINDRI = image.expression(                                               /// Triangle vegetation index
+      '((B11-B12)/(B11+B12))*100',{         // DIVIDIDO PARA 10000 POR LA REFLECTANCIA ADICIONAL 10 PARA RANGO
+      'B11': image.select('B11'),
+      'B12': image.select('B12')
+    }).rename('SINDRI');
+  return image.addBands([/*ndvi,CRC1,*/NDSVI,NDI7,NDI5,MCRC,SRNDI,NDTI,STI,RATIO,DFI,NDI3,/*NDI4,*/NDRI,SINDRI]);
+};
+
+/*var add_nirv = function(image) {
+  var nirv = image.expression(
+    '((NDVI-0.08)*B8)/10000',{
+      'NDVI':image.select('NDVI'),
+      'B8': image.select('B8')
+    }).rename('NIRv');
+  return image.addBands([nirv]);
+};
+*/
+
+/*
+function maskS2clouds(image) {
+  var qa = image.select('QA60');
+
+  // Bits 10 and 11 are clouds and cirrus, respectively.
+  var cloudBitMask = 1 << 10;
+  var cirrusBitMask = 1 << 11;
+
+  // Both flags should be set to zero, indicating clear conditions.
+  var mask = qa.bitwiseAnd(cloudBitMask).eq(0)
+      .and(qa.bitwiseAnd(cirrusBitMask).eq(0));
+  var properties = image.propertyNames()
+  return image.updateMask(mask).copyProperties(image,properties);
+                          //.divide(10000)
+                          
+}
+
+*/ 
+// Funcion mascara de nubes con la banda SCL
+function maskclouds_scl(imagen) {
+  var scl = imagen.select('SCL');
+  // Seleccionar las clases de vegetacion, suelo, agua y nieve
+  var veg = 4;
+  var soil = 5;
+  var water = 6;
+  var snow = 11;
+  // Mascara
+  var mask = scl.eq(veg).or(scl.eq(soil)).or(scl.eq(water)).or(scl.eq(snow));
+  var properties = imagen.propertyNames();
+  var imagen_mask = ee.Image(imagen.updateMask(mask).copyProperties(imagen,properties));
+  return imagen_mask;
+}
+
+
+// coleccion de imagenes sentincel-2 LA2
+var S2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED");
+
+var dataset = S2.filter(ee.Filter.date('2022-09-01', '2023-10-31'))
+                // filtro inicialmente por nubosidad
+                  //.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE',10))
+                  .filterBounds(parcelas)
+                  .map(maskclouds_scl)
+                  .map(addindices)
+                  //.map(add_nirv)
+                  .select('B2','B3','B4','B5','B6','B7','B8','B8A','B11','B12',
+                          /*'NDVI','CRC1',*/'NDSVI','NDI7','NDTI','STI',/*'NIRv',*/'MCRC','SRNDI','NDI5','RATIO','DFI','NDI3',/*'NDI4',*/'NDRI','SINDRI');
+print(dataset)                  
+
+// Estadisticas convencional
+
+var stats = dataset.map(function(image) {
+  return convencional.map(function(f){
+    var mean = image.reduceRegion({reducer: ee.Reducer.mean(),geometry: f.geometry(),scale: 20});
+    var std = image.reduceRegion({reducer: ee.Reducer.stdDev(),geometry: f.geometry(),scale: 20});
+    return f.set({
+      'date': image.date().format(),
+      // MEDIA
+      /*'NDVI_mean': mean.get('NDVI'),'CRC1_mean': mean.get('CRC1'),*/
+      'NDSVI_mean': mean.get('NDSVI'),'NDI7_mean': mean.get('NDI7'),
+      'NDTI_mean': mean.get('NDTI'),'STI_mean': mean.get('STI'),
+      /*'NIRv_mean': mean.get('NIRv'),*/'MCRC_mean': mean.get('MCRC'),
+      'SRNDI_mean': mean.get('SRNDI'),'NDI5_mean': mean.get('NDI5'),
+      'RATIO_mean': mean.get('RATIO'),'DFI_mean': mean.get('DFI'),
+      'NDI3_mean': mean.get('NDI3'),/*'NDI4_mean': mean.get('NDI4'),*/
+      'NDRI_mean': mean.get('NDRI'),'SINDRI_mean': mean.get('SINDRI'),
+      // DESVIACION ESTANDAR
+      /*'NDVI_std': std.get('NDVI'),'CRC1_std': std.get('CRC1'),*/
+      'NDSVI_std': std.get('NDSVI'),'NDI7_std': std.get('NDI7'),
+      'NDTI_std': std.get('NDTI'),'STI_std': std.get('STI'),
+      /*'NIRv_std': std.get('NIRv'),*/'MCRC_std': std.get('MCRC'),
+      'SRNDI_std': std.get('SRNDI'),'NDI5_std': std.get('NDI5'),
+      'RATIO_std': std.get('RATIO'),'DFI_std': std.get('DFI'),
+      'NDI3_std': std.get('NDI3'),/*'NDI4_std': std.get('NDI4'),*/
+      'NDRI_std': std.get('NDRI'),'SINDRI_std': std.get('SINDRI')
+    });
+  });
+})
+.flatten()
+// MEDIA
+/*.filter(ee.Filter.neq('NDVI_mean', null))
+.filter(ee.Filter.neq('CRC1_mean', null))*/.filter(ee.Filter.neq('NDSVI_mean', null))
+.filter(ee.Filter.neq('NDI7_mean', null)).filter(ee.Filter.neq('NDTI_mean', null))
+.filter(ee.Filter.neq('STI_mean', null))/*.filter(ee.Filter.neq('NIRv_mean', null))*/
+.filter(ee.Filter.neq('MCRC_mean', null)).filter(ee.Filter.neq('SRNDI_mean', null))
+.filter(ee.Filter.neq('NDI5_mean', null)).filter(ee.Filter.neq('RATIO_mean', null))
+.filter(ee.Filter.neq('DFI_mean', null)).filter(ee.Filter.neq('NDI3_mean', null))
+/*.filter(ee.Filter.neq('NDI4_mean', null))*/.filter(ee.Filter.neq('NDRI_mean', null))
+.filter(ee.Filter.neq('SINDRI_mean', null))
+// DESVIACION ESTANDAR
+/*.filter(ee.Filter.neq('NDVI_std', null))
+.filter(ee.Filter.neq('CRC1_std', null))*/.filter(ee.Filter.neq('NDSVI_std', null))
+.filter(ee.Filter.neq('NDI7_std', null)).filter(ee.Filter.neq('NDTI_std', null))
+.filter(ee.Filter.neq('STI_std', null))/*.filter(ee.Filter.neq('NIRv_std', null))*/
+.filter(ee.Filter.neq('MCRC_std', null)).filter(ee.Filter.neq('SRNDI_std', null))
+.filter(ee.Filter.neq('NDI5_std', null)).filter(ee.Filter.neq('RATIO_std', null))
+.filter(ee.Filter.neq('DFI_std', null)).filter(ee.Filter.neq('NDI3_std', null))
+/*.filter(ee.Filter.neq('NDI4_std', null))*/.filter(ee.Filter.neq('NDRI_std', null))
+.filter(ee.Filter.neq('SINDRI_std', null));
+// Export
+Export.table.toDrive({
+  collection: stats,
+  description: 'parcelas23_indices_S2_convencional',
+  fileFormat: 'CSV',
+  folder: 'Proyecto_ReSag'
+}); 
+
+//Estadisticas conservacion
+var stats = dataset.map(function(image) {
+  return conservacion.map(function(f){
+    var mean = image.reduceRegion({reducer: ee.Reducer.mean(),geometry: f.geometry(),scale: 20});
+    var std = image.reduceRegion({reducer: ee.Reducer.stdDev(),geometry: f.geometry(),scale: 20});
+    return f.set({
+      'date': image.date().format(),
+      /*'NDVI_mean': mean.get('NDVI'),'CRC1_mean': mean.get('CRC1'),*/
+      'NDSVI_mean': mean.get('NDSVI'),'NDI7_mean': mean.get('NDI7'),
+      'NDTI_mean': mean.get('NDTI'),'STI_mean': mean.get('STI'),
+      /*'NIRv_mean': mean.get('NIRv'),*/'MCRC_mean': mean.get('MCRC'),
+      'SRNDI_mean': mean.get('SRNDI'),'NDI5_mean': mean.get('NDI5'),
+      'RATIO_mean': mean.get('RATIO'),'DFI_mean': mean.get('DFI'),
+      'NDI3_mean': mean.get('NDI3'),/*'NDI4_mean': mean.get('NDI4'),*/
+      'NDRI_mean': mean.get('NDRI'),'SINDRI_mean': mean.get('SINDRI'),
+      // DESVIACION ESTANDAR
+      /*'NDVI_std': std.get('NDVI'),'CRC1_std': std.get('CRC1'),*/
+      'NDSVI_std': std.get('NDSVI'),'NDI7_std': std.get('NDI7'),
+      'NDTI_std': std.get('NDTI'),'STI_std': std.get('STI'),
+      /*'NIRv_std': std.get('NIRv'),*/'MCRC_std': std.get('MCRC'),
+      'SRNDI_std': std.get('SRNDI'),'NDI5_std': std.get('NDI5'),
+      'RATIO_std': std.get('RATIO'),'DFI_std':  std.get('DFI'),
+      'NDI3_std':  std.get('NDI3'),/*'NDI4_std':  std.get('NDI4'),*/
+      'NDRI_std':  std.get('NDRI'),'SINDRI_std':  std.get('SINDRI')
+    });
+  });
+})
+.flatten()
+// MEDIA
+/*.filter(ee.Filter.neq('NDVI_mean', null))
+.filter(ee.Filter.neq('CRC1_mean', null))*/.filter(ee.Filter.neq('NDSVI_mean', null))
+.filter(ee.Filter.neq('NDI7_mean', null)).filter(ee.Filter.neq('NDTI_mean', null))
+.filter(ee.Filter.neq('STI_mean', null))/*.filter(ee.Filter.neq('NIRv_mean', null))*/
+.filter(ee.Filter.neq('MCRC_mean', null)).filter(ee.Filter.neq('SRNDI_mean', null))
+.filter(ee.Filter.neq('NDI5_mean', null)).filter(ee.Filter.neq('RATIO_mean', null))
+.filter(ee.Filter.neq('DFI_mean', null)).filter(ee.Filter.neq('NDI3_mean', null))
+/*.filter(ee.Filter.neq('NDI4_mean', null))*/.filter(ee.Filter.neq('NDRI_mean', null))
+.filter(ee.Filter.neq('SINDRI_mean', null))
+// DESVIACION ESTANDAR
+/*.filter(ee.Filter.neq('NDVI_std', null))
+.filter(ee.Filter.neq('CRC1_std', null))*/.filter(ee.Filter.neq('NDSVI_std', null))
+.filter(ee.Filter.neq('NDI7_std', null)).filter(ee.Filter.neq('NDTI_std', null))
+.filter(ee.Filter.neq('STI_std', null))/*.filter(ee.Filter.neq('NIRv_std', null))*/
+.filter(ee.Filter.neq('MCRC_std', null)).filter(ee.Filter.neq('SRNDI_std', null))
+.filter(ee.Filter.neq('NDI5_std', null)).filter(ee.Filter.neq('RATIO_std', null))
+.filter(ee.Filter.neq('DFI_std', null)).filter(ee.Filter.neq('NDI3_std', null))
+/*.filter(ee.Filter.neq('NDI4_std', null))*/.filter(ee.Filter.neq('NDRI_std', null))
+.filter(ee.Filter.neq('SINDRI_std', null));
+
+
+
+
+// Export
+Export.table.toDrive({
+  collection: stats,
+  description: 'parcelas23_indices_S2_conservacion',
+  fileFormat: 'CSV',
+  folder: 'Proyecto_ReSag'
+}); 
+
+
+
