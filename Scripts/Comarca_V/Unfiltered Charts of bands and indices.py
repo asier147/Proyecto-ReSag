@@ -120,7 +120,7 @@ def create_percentile_mult_chart(indices, df):
             label = f'{index} - {manejo}'
                     
             line = ax.plot(subset['date'], subset['median'], label=label, color=color)
-            ax.fill_between(subset['date'], subset.iloc['<lambda_0>'], subset.iloc['<lambda_1>'], color=color, alpha=0.4)
+            ax.fill_between(subset['date'], subset['<lambda_0>'], subset['<lambda_1>'], color=color, alpha=0.4)
             
             # Store the first element of the line for the legend
             if manejo not in legend_artists:
