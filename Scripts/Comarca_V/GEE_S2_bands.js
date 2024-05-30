@@ -1,17 +1,18 @@
+// Load the parcels FeatureCollection
 var parcelas = ee.FeatureCollection('projects/resag-1/assets/Cereal_Comarca_V')
 
-
+// Filter parcels for 'Convencional' management
 var convencional = ee.FeatureCollection(parcelas)
     .filter(ee.Filter.eq('Manejo','Convencional'));
-
+// Filter parcels for 'Conservacion' management
 var conservacion = ee.FeatureCollection(parcelas)
     .filter(ee.Filter.eq('Manejo','Conservacion'));
  
 
-// Funcion mascara de nubes con la banda SCL
+// Function to mask clouds using the SCL band
 function maskclouds_scl(imagen) {
   var scl = imagen.select('SCL');
-  // Seleccionar las clases de vegetacion, suelo, agua y nieve
+  // Select vegetation, soil, water, and snow classes
   var veg = 4;
   var soil = 5;
   var water = 6;
@@ -24,10 +25,11 @@ function maskclouds_scl(imagen) {
 }
 
 
-// coleccion de imagenes sentincel-2 LA2
-var S2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED");
 
-var dataset = S2.filter(ee.Filter.date('2022-09-01', '2023-10-31'))
+// Load Sentinel-2 Level-2A imagery collection
+var S2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED");
+// Filter the imagery collection by date and location, apply cloud mask, and select bands
+var dataset = S2.filter(ee.Filter.date('2022-07-01', '2023-06-31'))
                 // filtro inicialmente por nubosidad
                   //.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE',10))
                   .filterBounds(parcelas)
@@ -35,7 +37,7 @@ var dataset = S2.filter(ee.Filter.date('2022-09-01', '2023-10-31'))
                   .select('B2','B3','B4','B5','B6','B7','B8','B8A','B11','B12');
 print(dataset)                  
 
-// Estadisticas convencional
+// Function to compute statistics for parcels under 'Convencional' management
 
 var stats = dataset.map(function(image) {
   return convencional.map(function(f){
@@ -59,7 +61,7 @@ var stats = dataset.map(function(image) {
   })
 })
 .flatten()
-// MEDIA
+// Filter out parcels with missing band values
 .filter(ee.Filter.neq('B2_mean', null))
 .filter(ee.Filter.neq('B3_mean', null)).filter(ee.Filter.neq('B4_mean', null))
 .filter(ee.Filter.neq('B5_mean', null)).filter(ee.Filter.neq('B6_mean', null))
@@ -73,7 +75,7 @@ var stats = dataset.map(function(image) {
 .filter(ee.Filter.neq('B7_std', null)).filter(ee.Filter.neq('B8_std', null))
 .filter(ee.Filter.neq('B8A_std', null)).filter(ee.Filter.neq('B11_std', null))
 .filter(ee.Filter.neq('B12_std', null));
-// Export
+// Export statistics to Google Drive
 Export.table.toDrive({
   collection: stats,
   description: 'Comarca_V_bandas_S2_convencional',
@@ -81,7 +83,7 @@ Export.table.toDrive({
   folder: 'Proyecto_ReSag'
 }); 
 
-//Estadisticas conservacion
+// Repeat the same process for 'Conservacion' management
 var stats = dataset.map(function(image) {
   return conservacion.map(function(f){
     var mean = image.reduceRegion({reducer: ee.Reducer.mean(),geometry: f.geometry(),scale: 20});
