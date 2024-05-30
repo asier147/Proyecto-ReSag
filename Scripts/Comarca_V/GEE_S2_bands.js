@@ -29,7 +29,7 @@ function maskclouds_scl(imagen) {
 // Load Sentinel-2 Level-2A imagery collection
 var S2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED");
 // Filter the imagery collection by date and location, apply cloud mask, and select bands
-var dataset = S2.filter(ee.Filter.date('2022-07-01', '2023-06-31'))
+var dataset = S2.filter(ee.Filter.date('2022-07-01', '2023-06-30'))
                 // filtro inicialmente por nubosidad
                   //.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE',10))
                   .filterBounds(parcelas)
