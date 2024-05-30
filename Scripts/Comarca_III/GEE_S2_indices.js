@@ -1,13 +1,14 @@
+// Load the parcels FeatureCollection
 var parcelas = ee.FeatureCollection('projects/resag-1/assets/Cereal_Comarca_III');
 
-
+// Filter parcels for 'Convencional' management
 var convencional = ee.FeatureCollection(parcelas)
     .filter(ee.Filter.eq('Manejo','Convencional'));
-
+// Filter parcels for 'Conservacion' management
 var conservacion = ee.FeatureCollection(parcelas)
     .filter(ee.Filter.eq('Manejo','Conservacion'));
  
-    
+// Function to add vegetation indices as bands to each image    
 var addindices = function(image) {
   
   var NDSVI = image.normalizedDifference(['B11','B4']).rename('NDSVI');  
@@ -40,7 +41,7 @@ var addindices = function(image) {
 
 
 
-// Funcion mascara de nubes con la banda SCL
+// Function to mask clouds using the Scene Classification (SCL) band
 function maskclouds_scl(imagen) {
   var scl = imagen.select('SCL');
   // Seleccionar las clases de vegetacion, suelo, agua y nieve
@@ -56,9 +57,9 @@ function maskclouds_scl(imagen) {
 }
 
 
-// coleccion de imagenes sentincel-2 LA2
+// Load Sentinel-2 Level-2A imagery collection
 var S2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED");
-
+// Filter the imagery collection by date, location, and apply cloud mask
 var dataset = S2.filter(ee.Filter.date('2022-09-01', '2023-08-31'))
                 // filtro inicialmente por nubosidad
                   //.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE',10))
@@ -70,7 +71,7 @@ var dataset = S2.filter(ee.Filter.date('2022-09-01', '2023-08-31'))
                           'NDSVI','NDI7','NDTI','STI','RATIO','DFI','SINDRI');
 print(dataset)                  
 
-// Estadisticas convencional
+// Function to compute statistics for parcels under 'Convencional' management
 
 var stats = dataset.map(function(image) {
   return convencional.map(function(f){
@@ -83,7 +84,7 @@ var stats = dataset.map(function(image) {
       'NDTI_mean': mean.get('NDTI'),'STI_mean': mean.get('STI'),
       'RATIO_mean': mean.get('RATIO'),'DFI_mean': mean.get('DFI'),
       'SINDRI_mean': mean.get('SINDRI'),
-      // DESVIACION ESTANDAR
+      // STD
       'NDSVI_std': std.get('NDSVI'),'NDI7_std':std.get('NDI7'),
       'NDTI_std': std.get('NDTI'),'STI_std': std.get('STI'),
       'RATIO_std': std.get('RATIO'),'DFI_std': std.get('DFI'),
@@ -92,18 +93,17 @@ var stats = dataset.map(function(image) {
   });
 })
 .flatten()
-// MEDIA
+// Filter out parcels with missing index values
 .filter(ee.Filter.neq('NDSVI_mean', null)).filter(ee.Filter.neq('NDI7_mean', null))
 .filter(ee.Filter.neq('NDTI_mean', null)).filter(ee.Filter.neq('STI_mean', null))
 .filter(ee.Filter.neq('RATIO_mean', null)).filter(ee.Filter.neq('DFI_mean', null))
 .filter(ee.Filter.neq('SINDRI_mean', null))
-// DESVIACION ESTANDAR
 .filter(ee.Filter.neq('NDSVI_std', null)).filter(ee.Filter.neq('NDI7_std', null))
 .filter(ee.Filter.neq('NDTI_std', null)).filter(ee.Filter.neq('STI_std', null))
 .filter(ee.Filter.neq('RATIO_std', null)).filter(ee.Filter.neq('DFI_std', null))
 .filter(ee.Filter.neq('SINDRI_std', null));
 
-// Export
+// Export statistics to Google Drive for 'Convencional' management
 Export.table.toDrive({
   collection: stats,
   description: 'Comarca_III_indices_S2_convencional',
@@ -111,7 +111,7 @@ Export.table.toDrive({
   folder: 'Proyecto_ReSag'
 }); 
 
-//Estadisticas conservacion
+// Repeat the process for 'Conservacion' management
 var stats = dataset.map(function(image) {
   return conservacion.map(function(f){
     var mean = image.reduceRegion({reducer: ee.Reducer.mean(),geometry: f.geometry(),scale: 20});
@@ -122,7 +122,7 @@ var stats = dataset.map(function(image) {
       'NDTI_mean': mean.get('NDTI'),'STI_mean': mean.get('STI'),
       'RATIO_mean': mean.get('RATIO'),'DFI_mean': mean.get('DFI'),
       'SINDRI_mean': mean.get('SINDRI'),
-      // DESVIACION ESTANDAR
+      // STD
       'NDSVI_std': std.get('NDSVI'),'NDI7_std': std.get('NDI7'),
       'NDTI_std': std.get('NDTI'),'STI_std': std.get('STI'),
       'RATIO_std': std.get('RATIO'),'DFI_std':  std.get('DFI'),
@@ -131,19 +131,16 @@ var stats = dataset.map(function(image) {
   });
 })
 .flatten()
-// MEDIA
+
 .filter(ee.Filter.neq('NDSVI_mean', null)).filter(ee.Filter.neq('NDI7_mean', null))
 .filter(ee.Filter.neq('NDTI_mean', null)).filter(ee.Filter.neq('STI_mean', null))
 .filter(ee.Filter.neq('RATIO_mean', null)).filter(ee.Filter.neq('DFI_mean', null))
 .filter(ee.Filter.neq('SINDRI_mean', null))
 
-// DESVIACION ESTANDAR
 .filter(ee.Filter.neq('NDSVI_std', null)).filter(ee.Filter.neq('NDI7_std', null))
 .filter(ee.Filter.neq('NDTI_std', null)).filter(ee.Filter.neq('STI_std', null))
 .filter(ee.Filter.neq('RATIO_std', null)).filter(ee.Filter.neq('DFI_std', null))
 .filter(ee.Filter.neq('SINDRI_std', null));
-
-
 
 
 // Export
