@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 30 18:11:21 2024
+Created on Thu May 30 18:27:36 2024
 
 @author: Asier
-Interpoltate of S-2 indices using IQR method
 """
-
 
 import os
 import pandas as pd
@@ -17,17 +15,17 @@ import numpy as np
 
 directory_path = "C:/Users/Asier/Desktop/Proyecto ReSAg/Archivos/S2/"
 os.chdir(directory_path)
-convencional_indices = pd.read_csv("Comarca_III_indices_S2_convencional.csv")
-convencional_indices.rename(columns={'PRD_DESC': 'Cultivo'}, inplace=True)
-conservacion_indices = pd.read_csv("Comarca_III_indices_S2_conservacion.csv")
-conservacion_indices.rename(columns={'PRD_DESC': 'Cultivo'}, inplace=True)
+convencional_bandas = pd.read_csv("Comarca_III_bandas_S2_convencional.csv")
+convencional_bandas.rename(columns={'PRD_DESC': 'Cultivo'}, inplace=True)
+conservacion_bandas = pd.read_csv("Comarca_III_bandas_S2_conservacion.csv")
+conservacion_bandas.rename(columns={'PRD_DESC': 'Cultivo'}, inplace=True)
 
-indices = sorted([x for x in convencional_indices.columns.values if 'mean' in x])
+bandas = sorted([x for x in convencional_bandas.columns.values if 'mean' in x ])
 columnas_fijas=['date','Manejo','REFSIGPAC','Cultivo']
 
-convencional = convencional_indices.loc[:,columnas_fijas+indices]
+convencional = convencional_bandas.loc[:,columnas_fijas+bandas]
 
-conservacion = conservacion_indices.loc[:,columnas_fijas+indices]
+conservacion = conservacion_bandas.loc[:,columnas_fijas+bandas]
 
 ############################################################################################################################################
 
@@ -52,6 +50,7 @@ convencional['date'] = pd.to_datetime(convencional['date']).dt.date
 
 ############################################################################################################################################
 
+
 df_por_parcela_convencional = {}
 df_por_parcela_conservacion = {}
 
@@ -62,7 +61,7 @@ for parcela_id in convencional_parcelas:
 # Filter by parcel
   df_parcela_conv = convencional.loc[convencional['REFSIGPAC'] == parcela_id]
   for fecha in df_parcela_conv['date']:
-      for indice in indices:
+      for bandas in bandas:
           # Reset the index
           df_parcela_conv = df_parcela_conv.reset_index(drop=True)
           # Store DataFrame in the dictionary
@@ -74,7 +73,7 @@ for parcela_id in conservacion_parcelas:
 # Filter by parcel
   df_parcela_cons = conservacion.loc[conservacion['REFSIGPAC'] == parcela_id]
   for fecha in df_parcela_cons['date']:
-      for indice in indices:
+      for banda in bandas:
           # Reset the index
           df_parcela_cons = df_parcela_cons.reset_index(drop=True)
           # Store DataFrame in the dictionary
@@ -82,9 +81,8 @@ for parcela_id in conservacion_parcelas:
 
 ############################################################################################################################################
 
-# Function to remove outliers from a dataset based on interquartile range (IQR)          
+ # Function to remove outliers from a dataset based on interquartile range (IQR)             
 def non_normal_outliers(data,col):
-    # Calculate the interquartile range (IQR)
     IQR=data[col].quantile(0.75)-data[col].quantile(0.25)
     max_value=data[col].quantile(0.75) + (1.5*IQR)
     min_value=data[col].quantile(0.25) - (1.5*IQR)
@@ -92,6 +90,7 @@ def non_normal_outliers(data,col):
     df_sinout = data[ab_sinout]
     print(data.shape[0]-df_sinout.shape[0],'outliers eliminados para la variable',col)
     return df_sinout
+
 
 # Dictionary to store cleaned data for conventional parcels
 sin_outliers_por_parcela_convencional = {}
@@ -122,7 +121,6 @@ for parcela_id, df_parcela in df_por_parcela_conservacion.items():
     # Concatenate the cleaned dataframes and store them in the dictionary
     consolidated_df = pd.concat(filtered_st_parcela_list, ignore_index=True)
     sin_outliers_por_parcela_conservacion[parcela_id] = consolidated_df
-    
     
 ############################################################################################################################################
 
@@ -169,7 +167,6 @@ for parcela_id, df_parcela in sin_outliers_por_parcela_conservacion.items():
     st_parcela = df_parcela.drop_duplicates(subset=['date']).iloc[:, [i for i, col in enumerate(df_parcela.columns) if 'mean' in col  or 'date' in col or'Manejo' in col or 'REFSIGPAC' in col  or 'Cultivo' in col]]
     inter_st_parcela = int_lineal(st_parcela) 
     sin_outliers__interpolacion_por_parcela_conservacion[parcela_id] = inter_st_parcela
-
 
 ############################################################################################################################################
 # Function to select Savitzky-Golay filter for long-term smoothing
@@ -218,31 +215,36 @@ for parcela_id, df_parcela in sin_outliers__interpolacion_por_parcela_conservaci
 
 ############################################################################################################################################
 # To apply the filter, keep only the already filtered columns but maintain the dataframe with the original and filtered data for potential representation
-indices = sorted([x for x in convencional_indices.columns.values if 'mean' in x ])
+bandas = sorted([x for x in convencional_bandas.columns.values if 'mean' in x ])
 selected_columns =['date','Manejo','REFSIGPAC','Cultivo']
 
 # Dictionary to store cleaned data for conventional parcels with selected columns
+
 df_limpio_convencional = {}
 # Loop over conventional parcel IDs and their respective dataframes
+
 for parcela_id, df_parcela in sin_outliers__interpolacion_por_parcela_convencional.items():
-    selected_columns_indices = selected_columns.copy()
+    selected_columns_bandas = selected_columns.copy()
+
     selected_columns = ['date', 'Manejo', 'REFSIGPAC','Cultivo']    
-    for indice in indices:
+    for banda in bandas:
         
-        selected_columns_indices.extend([indice])
-        df_seleccionados = df_parcela[selected_columns_indices]
+        selected_columns_bandas.extend([banda])
+        df_seleccionados = df_parcela[selected_columns_bandas]
         df_limpio_convencional[parcela_id] = df_seleccionados
+
 # Dictionary to store cleaned data for conservation parcels with selected columns        
+      
 df_limpio_conservacion = {}
 # Loop over conservation parcel IDs and their respective dataframes
 for parcela_id, df_parcela in sin_outliers__interpolacion_por_parcela_conservacion.items():
     selected_columns_indices = selected_columns.copy()
-
+    # Vaciar la lista selected_columns
     selected_columns = ['date', 'Manejo', 'REFSIGPAC','Cultivo']    
-    for indice in indices:
+    for banda in bandas:
         
-        selected_columns_indices.extend([indice])
-        df_seleccionados = df_parcela[selected_columns_indices]
+        selected_columns_indices.extend([banda])
+        df_seleccionados = df_parcela[selected_columns_bandas]
         df_limpio_conservacion[parcela_id] = df_seleccionados     
         
 ############################################################################################################################################
@@ -256,31 +258,31 @@ def st_filtro_savgol(df,indice):
 
 # Dictionary to store data filtered with Savitzky-Golay for conventional parcels
 df_savgol_convencional = {}
-# Loop over conventional parcel IDs and their respective dataframes
+# Dictionary to store data filtered with Savitzky-Golay for conventional parcelsdf_savgol_convencional = {}
 for parcela_id, df_parcela in df_limpio_convencional.items():    
-    for indice in indices:
-        df_filtrado = st_filtro_savgol(df_parcela,indice)
+    # Loop over conventional parcel IDs and their respective dataframes
+    for banda in bandas:
+        df_filtrado = st_filtro_savgol(df_parcela,banda)
     df_savgol_convencional[parcela_id] = df_filtrado
     
 # Dictionary to store data filtered with Savitzky-Golay for conservation parcels
 df_savgol_conservacion = {}
 # Loop over conservation parcel IDs and their respective dataframes
 for parcela_id, df_parcela in df_limpio_conservacion.items():    
-    for indice in indices:
-        df_filtrado = st_filtro_savgol(df_parcela,indice)
+    for banda in bandas:
+        df_filtrado = st_filtro_savgol(df_parcela,banda)
     df_savgol_conservacion[parcela_id] = df_filtrado
     
 ############################################################################################################################################
-# Concatenate dataframes and save them to CSV files
-
-df_unido_convencional = pd.concat(df_savgol_convencional.values(), ignore_index=True)
-df_unido_conservacion = pd.concat(df_savgol_conservacion.values(), ignore_index=True)
+    
+# Concatenate dataframes and save them to CSV files    
+df_bandas_convencional = pd.concat(df_savgol_convencional.values(), ignore_index=True)
+df_bandas_conservacion = pd.concat(df_savgol_conservacion.values(), ignore_index=True)
 # Save to CSV files
 guardado_path = "C:/Users/Asier/Desktop/Proyecto ReSAg/Archivos/Comarca_III"
 os.chdir(guardado_path)
-df_unido_convencional.to_csv('convencional_III_indices_filtrado.csv', index=False)
+df_bandas_convencional.to_csv('convencional_III_bandas_filtrado.csv', index=False)
 
-df_unido_conservacion.to_csv('conservacion_III_indices_filtrado.csv', index=False)
+df_bandas_conservacion.to_csv('conservacion_III_bandas_filtrado.csv', index=False)
 
 ############################################################################################################################################
-
