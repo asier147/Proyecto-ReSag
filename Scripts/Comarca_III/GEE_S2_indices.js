@@ -110,8 +110,8 @@ var stats = dataset.map(function(image) {
       'date': image.date().format(),
       'NDSVI_median': median.get('NDSVI'),'NDI7_median': median.get('NDI7'),
       'NDTI_median': median.get('NDTI'),'STI_median': median.get('STI'),
-      'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI'),
-      'SINDRI_median': median.get('SINDRI')
+      'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI')
+
 
     });
   });
