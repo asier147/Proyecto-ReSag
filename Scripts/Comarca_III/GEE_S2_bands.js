@@ -1,3 +1,4 @@
+
 var parcelas = ee.FeatureCollection('projects/resag-1/assets/Cereal_Comarca_III')
 
 
@@ -39,16 +40,16 @@ print(dataset)
 
 var stats = dataset.map(function(image) {
   return convencional.map(function(f){
-    var mean = image.reduceRegion({reducer: ee.Reducer.mean(),geometry: f.geometry(),scale: 20});
+    var median = image.reduceRegion({reducer: ee.Reducer.median(),geometry: f.geometry(),scale: 20});
     var std = image.reduceRegion({reducer: ee.Reducer.stdDev(),geometry: f.geometry(),scale: 20});
     return f.set({
       'date': image.date().format(),
       // MEDIA
-      'B2_mean': mean.get('B2'),'B6_mean': mean.get('B6'),
-      'B3_mean': mean.get('B3'),'B7_mean': mean.get('B7'),
-      'B4_mean': mean.get('B4'),'B8_mean': mean.get('B8'),
-      'B5_mean': mean.get('B5'),'B8A_mean': mean.get('B8A'),
-      'B11_mean': mean.get('B11'),'B12_mean': mean.get('B12'),
+      'B2_median': median.get('B2'),'B6_median': median.get('B6'),
+      'B3_median': median.get('B3'),'B7_median': median.get('B7'),
+      'B4_median': median.get('B4'),'B8_median': median.get('B8'),
+      'B5_median': median.get('B5'),'B8A_median': median.get('B8A'),
+      'B11_median': median.get('B11'),'B12_median': median.get('B12'),
       // DESVIACION ESTANDAR
       'B2_std': std.get('B2'),'B6_std': std.get('B6'),
       'B3_std': std.get('B3'),'B7_std': std.get('B7'),
@@ -60,12 +61,12 @@ var stats = dataset.map(function(image) {
 })
 .flatten()
 // MEDIA
-.filter(ee.Filter.neq('B2_mean', null))
-.filter(ee.Filter.neq('B3_mean', null)).filter(ee.Filter.neq('B4_mean', null))
-.filter(ee.Filter.neq('B5_mean', null)).filter(ee.Filter.neq('B6_mean', null))
-.filter(ee.Filter.neq('B7_mean', null)).filter(ee.Filter.neq('B8_mean', null))
-.filter(ee.Filter.neq('B8A_mean', null)).filter(ee.Filter.neq('B11_mean', null))
-.filter(ee.Filter.neq('B12_mean', null))
+.filter(ee.Filter.neq('B2_median', null))
+.filter(ee.Filter.neq('B3_median', null)).filter(ee.Filter.neq('B4_median', null))
+.filter(ee.Filter.neq('B5_median', null)).filter(ee.Filter.neq('B6_median', null))
+.filter(ee.Filter.neq('B7_median', null)).filter(ee.Filter.neq('B8_median', null))
+.filter(ee.Filter.neq('B8A_median', null)).filter(ee.Filter.neq('B11_median', null))
+.filter(ee.Filter.neq('B12_median', null))
 // DESVIACION ESTANDAR
 .filter(ee.Filter.neq('B2_std', null))
 .filter(ee.Filter.neq('B3_std', null)).filter(ee.Filter.neq('B4_std', null))
@@ -76,7 +77,7 @@ var stats = dataset.map(function(image) {
 // Export
 Export.table.toDrive({
   collection: stats,
-  description: 'Comarca_III_bandas_S2_convencional',
+  description: 'Comarca_III_median_bandas_S2_convencional',
   fileFormat: 'CSV',
   folder: 'Proyecto_ReSag'
 }); 
@@ -84,16 +85,16 @@ Export.table.toDrive({
 //Estadisticas conservacion
 var stats = dataset.map(function(image) {
   return conservacion.map(function(f){
-    var mean = image.reduceRegion({reducer: ee.Reducer.mean(),geometry: f.geometry(),scale: 20});
+    var median = image.reduceRegion({reducer: ee.Reducer.median(),geometry: f.geometry(),scale: 20});
     var std = image.reduceRegion({reducer: ee.Reducer.stdDev(),geometry: f.geometry(),scale: 20});
     return f.set({
       'date': image.date().format(),
       // MEDIA
-      'B2_mean': mean.get('B2'),'B6_mean': mean.get('B6'),
-      'B3_mean': mean.get('B3'),'B7_mean': mean.get('B7'),
-      'B4_mean': mean.get('B4'),'B8_mean': mean.get('B8'),
-      'B5_mean': mean.get('B5'),'B8A_mean': mean.get('B8A'),
-      'B11_mean': mean.get('B11'),'B12_mean': mean.get('B12'),
+      'B2_median': median.get('B2'),'B6_median': median.get('B6'),
+      'B3_median': median.get('B3'),'B7_median': median.get('B7'),
+      'B4_median': median.get('B4'),'B8_median': median.get('B8'),
+      'B5_median': median.get('B5'),'B8A_median': median.get('B8A'),
+      'B11_median': median.get('B11'),'B12_median': median.get('B12'),
       // DESVIACION ESTANDAR
       'B2_std': std.get('B2'),'B6_std': std.get('B6'),
       'B3_std': std.get('B3'),'B7_std': std.get('B7'),
@@ -105,12 +106,12 @@ var stats = dataset.map(function(image) {
 })
 .flatten()
 // MEDIA
-.filter(ee.Filter.neq('B2_mean', null))
-.filter(ee.Filter.neq('B3_mean', null)).filter(ee.Filter.neq('B4_mean', null))
-.filter(ee.Filter.neq('B5_mean', null)).filter(ee.Filter.neq('B6_mean', null))
-.filter(ee.Filter.neq('B7_mean', null)).filter(ee.Filter.neq('B8_mean', null))
-.filter(ee.Filter.neq('B8A_mean', null)).filter(ee.Filter.neq('B11_mean', null))
-.filter(ee.Filter.neq('B12_mean', null))
+.filter(ee.Filter.neq('B2_median', null))
+.filter(ee.Filter.neq('B3_median', null)).filter(ee.Filter.neq('B4_median', null))
+.filter(ee.Filter.neq('B5_median', null)).filter(ee.Filter.neq('B6_median', null))
+.filter(ee.Filter.neq('B7_median', null)).filter(ee.Filter.neq('B8_median', null))
+.filter(ee.Filter.neq('B8A_median', null)).filter(ee.Filter.neq('B11_median', null))
+.filter(ee.Filter.neq('B12_median', null))
 // DESVIACION ESTANDAR
 .filter(ee.Filter.neq('B2_std', null))
 .filter(ee.Filter.neq('B3_std', null)).filter(ee.Filter.neq('B4_std', null))
@@ -121,7 +122,7 @@ var stats = dataset.map(function(image) {
 // Export
 Export.table.toDrive({
   collection: stats,
-  description: 'Comarca_III_bandas_S2_conservacion',
+  description: 'Comarca_III_median_bandas_S2_conservacion',
   fileFormat: 'CSV',
   folder: 'Proyecto_ReSag'
 }); 
