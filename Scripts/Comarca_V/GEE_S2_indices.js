@@ -82,8 +82,8 @@ var stats = dataset.map(function(image) {
       // MEDIA
       'NDSVI_median': median.get('NDSVI'),'NDI7_median': median.get('NDI7'),
       'NDTI_median': median.get('NDTI'),'STI_median': median.get('STI'),
-      'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI'),
-      'SINDRI_median': median.get('SINDRI')     
+      'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI')
+
     });
   });
 })
@@ -91,8 +91,8 @@ var stats = dataset.map(function(image) {
 //MEDIAN
 .filter(ee.Filter.neq('NDSVI_median', null)).filter(ee.Filter.neq('NDI7_median', null))
 .filter(ee.Filter.neq('NDTI_median', null)).filter(ee.Filter.neq('STI_median', null))
-.filter(ee.Filter.neq('RATIO_median', null)).filter(ee.Filter.neq('DFI_median', null))
-.filter(ee.Filter.neq('SINDRI_median', null))
+.filter(ee.Filter.neq('RATIO_median', null)).filter(ee.Filter.neq('DFI_median', null));
+
 
 // Export
 Export.table.toDrive({
@@ -111,8 +111,8 @@ var stats = dataset.map(function(image) {
       'date': image.date().format(),
       'NDSVI_median': median.get('NDSVI'),'NDI7_median': median.get('NDI7'),
       'NDTI_median': median.get('NDTI'),'STI_median': median.get('STI'),
-      'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI'),
-      'SINDRI_median': median.get('SINDRI')
+      'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI')
+
      
     });
   });
@@ -121,8 +121,8 @@ var stats = dataset.map(function(image) {
 // MEDIAN
 .filter(ee.Filter.neq('NDSVI_median', null)).filter(ee.Filter.neq('NDI7_median', null))
 .filter(ee.Filter.neq('NDTI_median', null)).filter(ee.Filter.neq('STI_median', null))
-.filter(ee.Filter.neq('RATIO_median', null)).filter(ee.Filter.neq('DFI_median', null))
-.filter(ee.Filter.neq('SINDRI_median', null))
+.filter(ee.Filter.neq('RATIO_median', null)).filter(ee.Filter.neq('DFI_median', null));
+
 
 
 // Export
