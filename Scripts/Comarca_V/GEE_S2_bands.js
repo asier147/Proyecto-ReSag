@@ -49,13 +49,9 @@ var stats = dataset.map(function(image) {
       'B3_median': median.get('B3'),'B7_median': median.get('B7'),
       'B4_median': median.get('B4'),'B8_median': median.get('B8'),
       'B5_median': median.get('B5'),'B8A_median': median.get('B8A'),
-      'B11_median': median.get('B11'),'B12_median': median.get('B12'),
-      // DESVIACION ESTANDAR
-      'B2_std': std.get('B2'),'B6_std': std.get('B6'),
-      'B3_std': std.get('B3'),'B7_std': std.get('B7'),
-      'B4_std': std.get('B4'),'B8_std': std.get('B8'),
-      'B5_std': std.get('B5'),'B8A_std': std.get('B8A'),
-      'B11_std': std.get('B11'),'B12_std': std.get('B12'),
+      'B11_median': median.get('B11'),'B12_median': median.get('B12')
+
+
     })
   })
 })
@@ -67,13 +63,8 @@ var stats = dataset.map(function(image) {
 .filter(ee.Filter.neq('B7_median', null)).filter(ee.Filter.neq('B8_median', null))
 .filter(ee.Filter.neq('B8A_median', null)).filter(ee.Filter.neq('B11_median', null))
 .filter(ee.Filter.neq('B12_median', null))
-// DESVIACION ESTANDAR
-.filter(ee.Filter.neq('B2_std', null))
-.filter(ee.Filter.neq('B3_std', null)).filter(ee.Filter.neq('B4_std', null))
-.filter(ee.Filter.neq('B5_std', null)).filter(ee.Filter.neq('B6_std', null))
-.filter(ee.Filter.neq('B7_std', null)).filter(ee.Filter.neq('B8_std', null))
-.filter(ee.Filter.neq('B8A_std', null)).filter(ee.Filter.neq('B11_std', null))
-.filter(ee.Filter.neq('B12_std', null));
+
+
 // Export
 Export.table.toDrive({
   collection: stats,
@@ -94,13 +85,8 @@ var stats = dataset.map(function(image) {
       'B3_median': median.get('B3'),'B7_median': median.get('B7'),
       'B4_median': median.get('B4'),'B8_median': median.get('B8'),
       'B5_median': median.get('B5'),'B8A_median': median.get('B8A'),
-      'B11_median': median.get('B11'),'B12_median': median.get('B12'),
-      // DESVIACION ESTANDAR
-      'B2_std': std.get('B2'),'B6_std': std.get('B6'),
-      'B3_std': std.get('B3'),'B7_std': std.get('B7'),
-      'B4_std': std.get('B4'),'B8_std': std.get('B8'),
-      'B5_std': std.get('B5'),'B8A_std': std.get('B8A'),
-      'B11_std': std.get('B11'),'B12_std': std.get('B12'),
+      'B11_median': median.get('B11'),'B12_median': median.get('B12')
+
     })
   })
 })
@@ -112,13 +98,7 @@ var stats = dataset.map(function(image) {
 .filter(ee.Filter.neq('B7_median', null)).filter(ee.Filter.neq('B8_median', null))
 .filter(ee.Filter.neq('B8A_median', null)).filter(ee.Filter.neq('B11_median', null))
 .filter(ee.Filter.neq('B12_median', null))
-// DESVIACION ESTANDAR
-.filter(ee.Filter.neq('B2_std', null))
-.filter(ee.Filter.neq('B3_std', null)).filter(ee.Filter.neq('B4_std', null))
-.filter(ee.Filter.neq('B5_std', null)).filter(ee.Filter.neq('B6_std', null))
-.filter(ee.Filter.neq('B7_std', null)).filter(ee.Filter.neq('B8_std', null))
-.filter(ee.Filter.neq('B8A_std', null)).filter(ee.Filter.neq('B11_std', null))
-.filter(ee.Filter.neq('B12_std', null));
+
 // Export
 Export.table.toDrive({
   collection: stats,
