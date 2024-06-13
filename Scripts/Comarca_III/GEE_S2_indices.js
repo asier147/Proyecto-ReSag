@@ -82,13 +82,8 @@ var stats = dataset.map(function(image) {
       // MEDIA
       'NDSVI_median': median.get('NDSVI'),'NDI7_median': median.get('NDI7'),
       'NDTI_median': median.get('NDTI'),'STI_median': median.get('STI'),
-      'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI'),
-      'SINDRI_median': median.get('SINDRI'),
-      // DESVIACION ESTANDAR
-      'NDSVI_std': std.get('NDSVI'),'NDI7_std':std.get('NDI7'),
-      'NDTI_std': std.get('NDTI'),'STI_std': std.get('STI'),
-      'RATIO_std': std.get('RATIO'),'DFI_std': std.get('DFI'),
-      'SINDRI_std': std.get('SINDRI')
+      'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI')
+
     });
   });
 })
@@ -96,13 +91,7 @@ var stats = dataset.map(function(image) {
 // MEDIA
 .filter(ee.Filter.neq('NDSVI_median', null)).filter(ee.Filter.neq('NDI7_median', null))
 .filter(ee.Filter.neq('NDTI_median', null)).filter(ee.Filter.neq('STI_median', null))
-.filter(ee.Filter.neq('RATIO_median', null)).filter(ee.Filter.neq('DFI_median', null))
-.filter(ee.Filter.neq('SINDRI_median', null))
-// DESVIACION ESTANDAR
-.filter(ee.Filter.neq('NDSVI_std', null)).filter(ee.Filter.neq('NDI7_std', null))
-.filter(ee.Filter.neq('NDTI_std', null)).filter(ee.Filter.neq('STI_std', null))
-.filter(ee.Filter.neq('RATIO_std', null)).filter(ee.Filter.neq('DFI_std', null))
-.filter(ee.Filter.neq('SINDRI_std', null));
+.filter(ee.Filter.neq('RATIO_median', null)).filter(ee.Filter.neq('DFI_median', null));
 
 // Export
 Export.table.toDrive({
@@ -122,12 +111,8 @@ var stats = dataset.map(function(image) {
       'NDSVI_median': median.get('NDSVI'),'NDI7_median': median.get('NDI7'),
       'NDTI_median': median.get('NDTI'),'STI_median': median.get('STI'),
       'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI'),
-      'SINDRI_median': median.get('SINDRI'),
-      // DESVIACION ESTANDAR
-      'NDSVI_std': std.get('NDSVI'),'NDI7_std': std.get('NDI7'),
-      'NDTI_std': std.get('NDTI'),'STI_std': std.get('STI'),
-      'RATIO_std': std.get('RATIO'),'DFI_std':  std.get('DFI'),
-      'SINDRI_std':  std.get('SINDRI')
+      'SINDRI_median': median.get('SINDRI')
+
     });
   });
 })
@@ -135,14 +120,8 @@ var stats = dataset.map(function(image) {
 // MEDIA
 .filter(ee.Filter.neq('NDSVI_median', null)).filter(ee.Filter.neq('NDI7_median', null))
 .filter(ee.Filter.neq('NDTI_median', null)).filter(ee.Filter.neq('STI_median', null))
-.filter(ee.Filter.neq('RATIO_median', null)).filter(ee.Filter.neq('DFI_median', null))
-.filter(ee.Filter.neq('SINDRI_median', null))
+.filter(ee.Filter.neq('RATIO_median', null)).filter(ee.Filter.neq('DFI_median', null));
 
-// DESVIACION ESTANDAR
-.filter(ee.Filter.neq('NDSVI_std', null)).filter(ee.Filter.neq('NDI7_std', null))
-.filter(ee.Filter.neq('NDTI_std', null)).filter(ee.Filter.neq('STI_std', null))
-.filter(ee.Filter.neq('RATIO_std', null)).filter(ee.Filter.neq('DFI_std', null))
-.filter(ee.Filter.neq('SINDRI_std', null));
 
 
 
