@@ -62,7 +62,7 @@ var stats = dataset.map(function(image) {
 .filter(ee.Filter.neq('B5_median', null)).filter(ee.Filter.neq('B6_median', null))
 .filter(ee.Filter.neq('B7_median', null)).filter(ee.Filter.neq('B8_median', null))
 .filter(ee.Filter.neq('B8A_median', null)).filter(ee.Filter.neq('B11_median', null))
-.filter(ee.Filter.neq('B12_median', null))
+.filter(ee.Filter.neq('B12_median', null));
 
 
 // Export
@@ -97,7 +97,7 @@ var stats = dataset.map(function(image) {
 .filter(ee.Filter.neq('B5_median', null)).filter(ee.Filter.neq('B6_median', null))
 .filter(ee.Filter.neq('B7_median', null)).filter(ee.Filter.neq('B8_median', null))
 .filter(ee.Filter.neq('B8A_median', null)).filter(ee.Filter.neq('B11_median', null))
-.filter(ee.Filter.neq('B12_median', null))
+.filter(ee.Filter.neq('B12_median', null));
 
 // Export
 Export.table.toDrive({
