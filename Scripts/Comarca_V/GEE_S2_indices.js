@@ -1,14 +1,14 @@
-// Load the parcels FeatureCollection
+
 var parcelas = ee.FeatureCollection('projects/resag-1/assets/Cereal_Comarca_V');
 
-// Filter parcels for 'Convencional' management
+
 var convencional = ee.FeatureCollection(parcelas)
     .filter(ee.Filter.eq('Manejo','Convencional'));
-// Filter parcels for 'Conservacion' management
+
 var conservacion = ee.FeatureCollection(parcelas)
     .filter(ee.Filter.eq('Manejo','Conservacion'));
  
-// Function to add vegetation indices as bands to each image    
+    
 var addindices = function(image) {
   
   var NDSVI = image.normalizedDifference(['B11','B4']).rename('NDSVI');  
@@ -20,19 +20,19 @@ var addindices = function(image) {
       'B4' : image.select('B4'),
       'B8': image.select('B8')
     }).rename('DFI'); 
-  var RATIO = image.expression(                                               /// Triangle vegetation index
+  var RATIO = image.expression(                                               
       'B12/B11'/*10000*/, {         
       'B11': image.select('B11'),
       'B12': image.select('B12')
     }).rename('RATIO');
-  var NDTI = image.normalizedDifference(['B11','B12']).rename('NDTI'); /// normalized Diff Red Edge Index
-  var STI = image.expression(                                               /// Triangle vegetation index
-      'B11/B12',{         // DIVIDIDO PARA 10000 POR LA REFLECTANCIA ADICIONAL 10 PARA RANGO
+  var NDTI = image.normalizedDifference(['B11','B12']).rename('NDTI'); 
+  var STI = image.expression(                                               
+      'B11/B12',{         
       'B11': image.select('B11'),
       'B12': image.select('B12')
     }).rename('STI');
-    var SINDRI = image.expression(                                               /// Triangle vegetation index
-      '((B11-B12)/(B11+B12))*100',{         // DIVIDIDO PARA 10000 POR LA REFLECTANCIA ADICIONAL 10 PARA RANGO
+    var SINDRI = image.expression(                                               
+      '((B11-B12)/(B11+B12))*100',{         
       'B11': image.select('B11'),
       'B12': image.select('B12')
     }).rename('SINDRI');
@@ -41,7 +41,7 @@ var addindices = function(image) {
 
 
 
-// Function to mask clouds using the Scene Classification (SCL) band
+// Funcion mascara de nubes con la banda SCL
 function maskclouds_scl(imagen) {
   var scl = imagen.select('SCL');
   // Seleccionar las clases de vegetacion, suelo, agua y nieve
@@ -57,9 +57,9 @@ function maskclouds_scl(imagen) {
 }
 
 
-// Load Sentinel-2 Level-2A imagery collection
+// coleccion de imagenes sentincel-2 LA2
 var S2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED");
-// Filter the imagery collection by date, location, and apply cloud mask
+
 var dataset = S2.filter(ee.Filter.date('2022-07-01', '2023-06-30'))
                 // filtro inicialmente por nubosidad
                   //.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE',10))
@@ -71,20 +71,20 @@ var dataset = S2.filter(ee.Filter.date('2022-07-01', '2023-06-30'))
                           'NDSVI','NDI7','NDTI','STI','RATIO','DFI','SINDRI');
 print(dataset)                  
 
-// Function to compute statistics for parcels under 'Convencional' management
+// Estadisticas convencional
 
 var stats = dataset.map(function(image) {
   return convencional.map(function(f){
-    var mean = image.reduceRegion({reducer: ee.Reducer.mean(),geometry: f.geometry(),scale: 20});
+    var median = image.reduceRegion({reducer: ee.Reducer.median(),geometry: f.geometry(),scale: 20});
     var std = image.reduceRegion({reducer: ee.Reducer.stdDev(),geometry: f.geometry(),scale: 20});
     return f.set({
       'date': image.date().format(),
       // MEDIA
-      'NDSVI_mean': mean.get('NDSVI'),'NDI7_mean': mean.get('NDI7'),
-      'NDTI_mean': mean.get('NDTI'),'STI_mean': mean.get('STI'),
-      'RATIO_mean': mean.get('RATIO'),'DFI_mean': mean.get('DFI'),
-      'SINDRI_mean': mean.get('SINDRI'),
-      // STD
+      'NDSVI_median': median.get('NDSVI'),'NDI7_median': median.get('NDI7'),
+      'NDTI_median': median.get('NDTI'),'STI_median': median.get('STI'),
+      'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI'),
+      'SINDRI_median': median.get('SINDRI'),
+      // DESVIACION ESTANDAR
       'NDSVI_std': std.get('NDSVI'),'NDI7_std':std.get('NDI7'),
       'NDTI_std': std.get('NDTI'),'STI_std': std.get('STI'),
       'RATIO_std': std.get('RATIO'),'DFI_std': std.get('DFI'),
@@ -93,36 +93,37 @@ var stats = dataset.map(function(image) {
   });
 })
 .flatten()
-// Filter out parcels with missing index values
-.filter(ee.Filter.neq('NDSVI_mean', null)).filter(ee.Filter.neq('NDI7_mean', null))
-.filter(ee.Filter.neq('NDTI_mean', null)).filter(ee.Filter.neq('STI_mean', null))
-.filter(ee.Filter.neq('RATIO_mean', null)).filter(ee.Filter.neq('DFI_mean', null))
-.filter(ee.Filter.neq('SINDRI_mean', null))
+// MEDIA
+.filter(ee.Filter.neq('NDSVI_median', null)).filter(ee.Filter.neq('NDI7_median', null))
+.filter(ee.Filter.neq('NDTI_median', null)).filter(ee.Filter.neq('STI_median', null))
+.filter(ee.Filter.neq('RATIO_median', null)).filter(ee.Filter.neq('DFI_median', null))
+.filter(ee.Filter.neq('SINDRI_median', null))
+// DESVIACION ESTANDAR
 .filter(ee.Filter.neq('NDSVI_std', null)).filter(ee.Filter.neq('NDI7_std', null))
 .filter(ee.Filter.neq('NDTI_std', null)).filter(ee.Filter.neq('STI_std', null))
 .filter(ee.Filter.neq('RATIO_std', null)).filter(ee.Filter.neq('DFI_std', null))
 .filter(ee.Filter.neq('SINDRI_std', null));
 
-// Export statistics to Google Drive for 'Convencional' management
+// Export
 Export.table.toDrive({
   collection: stats,
-  description: 'Comarca_V_indices_S2_convencional',
+  description: 'Comarca_V_median_indices_S2_convencional',
   fileFormat: 'CSV',
   folder: 'Proyecto_ReSag'
 }); 
 
-// Repeat the process for 'Conservacion' management
+//Estadisticas conservacion
 var stats = dataset.map(function(image) {
   return conservacion.map(function(f){
-    var mean = image.reduceRegion({reducer: ee.Reducer.mean(),geometry: f.geometry(),scale: 20});
+    var median = image.reduceRegion({reducer: ee.Reducer.median(),geometry: f.geometry(),scale: 20});
     var std = image.reduceRegion({reducer: ee.Reducer.stdDev(),geometry: f.geometry(),scale: 20});
     return f.set({
       'date': image.date().format(),
-      'NDSVI_mean': mean.get('NDSVI'),'NDI7_mean': mean.get('NDI7'),
-      'NDTI_mean': mean.get('NDTI'),'STI_mean': mean.get('STI'),
-      'RATIO_mean': mean.get('RATIO'),'DFI_mean': mean.get('DFI'),
-      'SINDRI_mean': mean.get('SINDRI'),
-      // STD
+      'NDSVI_median': median.get('NDSVI'),'NDI7_median': median.get('NDI7'),
+      'NDTI_median': median.get('NDTI'),'STI_median': median.get('STI'),
+      'RATIO_median': median.get('RATIO'),'DFI_median': median.get('DFI'),
+      'SINDRI_median': median.get('SINDRI'),
+      // DESVIACION ESTANDAR
       'NDSVI_std': std.get('NDSVI'),'NDI7_std': std.get('NDI7'),
       'NDTI_std': std.get('NDTI'),'STI_std': std.get('STI'),
       'RATIO_std': std.get('RATIO'),'DFI_std':  std.get('DFI'),
@@ -131,24 +132,28 @@ var stats = dataset.map(function(image) {
   });
 })
 .flatten()
+// MEDIA
+.filter(ee.Filter.neq('NDSVI_median', null)).filter(ee.Filter.neq('NDI7_median', null))
+.filter(ee.Filter.neq('NDTI_median', null)).filter(ee.Filter.neq('STI_median', null))
+.filter(ee.Filter.neq('RATIO_median', null)).filter(ee.Filter.neq('DFI_median', null))
+.filter(ee.Filter.neq('SINDRI_median', null))
 
-.filter(ee.Filter.neq('NDSVI_mean', null)).filter(ee.Filter.neq('NDI7_mean', null))
-.filter(ee.Filter.neq('NDTI_mean', null)).filter(ee.Filter.neq('STI_mean', null))
-.filter(ee.Filter.neq('RATIO_mean', null)).filter(ee.Filter.neq('DFI_mean', null))
-.filter(ee.Filter.neq('SINDRI_mean', null))
-
+// DESVIACION ESTANDAR
 .filter(ee.Filter.neq('NDSVI_std', null)).filter(ee.Filter.neq('NDI7_std', null))
 .filter(ee.Filter.neq('NDTI_std', null)).filter(ee.Filter.neq('STI_std', null))
 .filter(ee.Filter.neq('RATIO_std', null)).filter(ee.Filter.neq('DFI_std', null))
 .filter(ee.Filter.neq('SINDRI_std', null));
 
 
+
+
 // Export
 Export.table.toDrive({
   collection: stats,
-  description: 'Comarca_V_indices_S2_conservacion',
+  description: 'Comarca_V_median_indices_S2_conservacion',
   fileFormat: 'CSV',
   folder: 'Proyecto_ReSag'
 }); 
+
 
 
