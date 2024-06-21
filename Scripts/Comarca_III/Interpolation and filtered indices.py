@@ -233,7 +233,7 @@ for parcela_id, df_parcela in sin_outliers__interpolacion_por_parcela_conservaci
 ############################################################################################################################################
 
 def st_filtro_savgol(df,indice):
-    m_ = 11
+    m_ = 13
     d = 3
     m = (2*m_+1)
     df[indice]=savgol_filter(df[indice],m, d)
