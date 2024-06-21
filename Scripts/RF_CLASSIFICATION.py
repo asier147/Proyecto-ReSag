@@ -56,7 +56,7 @@ def RF(df,CE, bandas):
     dftest=dftt
 
     # LLamada al constructor del random forest utilizando los parámetros del punto anterior
-    RF = RandomForestClassifier(criterion = 'entropy', 
+    RF = RandomForestClassifier(criterion = 'gini', 
                                 max_depth = None, 
                                 max_features = 'log2', 
                                 min_samples_split = 2, 
